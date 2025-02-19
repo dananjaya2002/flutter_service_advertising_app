@@ -15,10 +15,34 @@ class StoreScreen extends StatefulWidget {
 }
 
 class _StoreScreenState extends State<StoreScreen> {
+  // List of services in the store
   List<Service> services = [
-    Service(name: 'Electric Components', description: 'All types of electric services', rating: 4.5),
-    Service(name: 'Engineering Works', description: 'All types of engineering services', rating: 4.0),
+    Service(
+      name: 'Electric Components',
+      description: 'All types of electric services',
+      category: 'Electrician',
+      rating: 4.5,
+      image: 'assets/images/electric_components.jpg', // Replace with actual image path
+    ),
+    Service(
+      name: 'Engineering Works',
+      description: 'All types of engineering services',
+      category: 'Engineering',
+      rating: 4.0,
+      image: 'assets/images/engineering_services.jpg', // Replace with actual image path
+    ),
   ];
+
+  // Toggle favorite status
+  void _toggleFavorite(Service service) {
+    setState(() {
+      if (service.isFavorite) {
+        service.isFavorite = false;
+      } else {
+        service.isFavorite = true;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,11 +52,14 @@ class _StoreScreenState extends State<StoreScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: widget.currentUser.isServiceProvider ? _buildServiceProviderUI() : _buildUserUI(),
+        child: widget.currentUser.isServiceProvider
+            ? _buildServiceProviderUI()
+            : _buildUserUI(),
       ),
     );
   }
 
+  // UI for users who don't have a store yet
   Widget _buildUserUI() {
     return Center(
       child: Column(
@@ -49,6 +76,7 @@ class _StoreScreenState extends State<StoreScreen> {
     );
   }
 
+  // UI for service providers
   Widget _buildServiceProviderUI() {
     return SingleChildScrollView(
       child: Column(
@@ -59,7 +87,19 @@ class _StoreScreenState extends State<StoreScreen> {
             physics: const NeverScrollableScrollPhysics(),
             itemCount: services.length,
             itemBuilder: (context, index) {
-              return ServiceCard(service: services[index]);
+              final service = services[index];
+              return ServiceCard(
+                service: service,
+                isFavorite: service.isFavorite,
+                onFavoriteTap: () => _toggleFavorite(service),
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/service_details',
+                    arguments: service,
+                  );
+                },
+              );
             },
           ),
           EditItemButton(onPressed: _editItemDetails),
@@ -73,6 +113,7 @@ class _StoreScreenState extends State<StoreScreen> {
     );
   }
 
+  // Show popup to add a store
   void _showAddStorePopup() {
     showDialog(
       context: context,
@@ -88,6 +129,7 @@ class _StoreScreenState extends State<StoreScreen> {
     );
   }
 
+  // Show popup to edit services
   void _showEditServicesPopup() {
     showDialog(
       context: context,
@@ -104,7 +146,8 @@ class _StoreScreenState extends State<StoreScreen> {
     );
   }
 
+  // Logic to edit store details (title, description, etc.)
   void _editItemDetails() {
-    // Logic to edit store details (title, description, etc.)
+    // Implement logic to edit store details here
   }
 }

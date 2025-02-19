@@ -74,6 +74,7 @@ class _EditServicePopupState extends State<EditServicePopup> {
       services.add(Service(
         name: 'New Service',
         description: 'Description of the new service',
+        category: 'new category',
         rating: 0.0,
       ));
     });

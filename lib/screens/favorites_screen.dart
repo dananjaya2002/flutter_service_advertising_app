@@ -1,84 +1,54 @@
 import 'package:flutter/material.dart';
+import '../models/service.dart';
+import '../widgets/service_card.dart';
 
-// Define a data model for the favorite items
-class FavoriteItem {
-  final IconData icon;
-  final String title;
-  final String subtitle;
+class FavoritesScreen extends StatefulWidget {
+  final List<Service> favoriteServices;
 
-  FavoriteItem({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-}
-
-// Custom ListTile widget for displaying favorite items
-class FavoriteItemTile extends StatelessWidget {
-  final FavoriteItem item;
-
-  const FavoriteItemTile({
+  const FavoritesScreen({
     super.key,
-    required this.item,
+    required this.favoriteServices,
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      child: ListTile(
-        leading: Icon(
-          item.icon,
-          size: 50,
-        ),
-        title: Text(item.title),
-        subtitle: Text(item.subtitle),
-        onTap: () {
-          // Navigate to Service Details Screen with data
-          Navigator.pushNamed(
-            context,
-            '/service-details',
-            arguments: item,
-          );
-        },
-      ),
-    );
-  }
+  State<FavoritesScreen> createState() => _FavoritesScreenState();
 }
 
-class FavoritesScreen extends StatelessWidget {
-  const FavoritesScreen({super.key});
+class _FavoritesScreenState extends State<FavoritesScreen> {
+  // Remove a service from favorites
+  void _removeFromFavorites(Service service) {
+    setState(() {
+      widget.favoriteServices.remove(service); // Remove the service from the list
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Dummy favorites data (replace with your real data model)
-    final List<FavoriteItem> favorites = [
-      FavoriteItem(
-        icon: Icons.favorite,
-        title: 'Favorite Service 1',
-        subtitle: 'High quality service for your needs',
-      ),
-      FavoriteItem(
-        icon: Icons.star,
-        title: 'Favorite Service 2',
-        subtitle: 'Reliable and trusted',
-      ),
-    ];
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Favorites'),
       ),
-      body: favorites.isEmpty
+      body: widget.favoriteServices.isEmpty
           ? const Center(child: Text('No favorites yet'))
           : ListView.builder(
-        padding: const EdgeInsets.all(16.0),
-        itemCount: favorites.length,
-        itemBuilder: (context, index) {
-          final fav = favorites[index];
-          return FavoriteItemTile(item: fav);
-        },
-      ),
+              padding: const EdgeInsets.all(16.0),
+              itemCount: widget.favoriteServices.length,
+              itemBuilder: (context, index) {
+                final service = widget.favoriteServices[index];
+                return ServiceCard(
+                  service: service,
+                  isFavorite: true, // Always true in FavoritesScreen
+                  onFavoriteTap: () => _removeFromFavorites(service), // Handle removal
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/service_details',
+                      arguments: service,
+                    );
+                  },
+                );
+              },
+            ),
     );
   }
 }
