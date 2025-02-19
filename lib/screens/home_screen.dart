@@ -20,13 +20,15 @@ class HomeScreen extends StatelessWidget {
       description:
           'Offers high-quality electronic components and tools, including Arduinos, Raspberry Pis, and 3D printers.',
       rating: 4.4,
-      image: 'assets/images/tronic_lk.jpg', // Replace with actual image path
+      image:
+          'assets/images/service_provider.jpg', // Replace with actual image path
     ),
     Service(
       name: 'Slim Co Eng.',
       description: 'All kinds of engineering works',
       rating: 4.3,
-      image: 'assets/images/slim_co_eng.jpg', // Replace with actual image path
+
+      // without an image
     ),
   ];
 
