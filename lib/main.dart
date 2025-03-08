@@ -1,11 +1,24 @@
-import 'package:flutter/material.dart';
-import 'screens/login_screen.dart'; // Import LoginScreen
-import 'screens/signup_screen.dart'; // Import SignupScreen
-import 'screens/service_details_screen.dart'; // Import ServiceDetailsScreen
-import 'screens/main_screen.dart'; // Import MainScreen
-import 'models/user.dart'; // Import User model
+import 'dart:developer';
 
-void main() {
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'screens/login_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'screens/signup_screen.dart';
+import 'screens/service_details_screen.dart';
+import 'screens/main_screen.dart';
+import 'models/user.dart' as app_model; // Custom User model
+import 'services/auth_service.dart'; // Import AuthService
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  log("This is a log message");
+  try {
+    await Firebase.initializeApp();
+    log("Firebase initialized successfully"); // Replaces print
+  } catch (e) {
+    log("Error initializing Firebase: $e"); // Replaces print
+  }
   runApp(MyApp());
 }
 
@@ -16,65 +29,65 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'My App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      initialRoute: '/', // Default route (SplashScreen or AuthFlow)
+      theme: ThemeData(primarySwatch: Colors.blue),
+      initialRoute: '/',
       routes: {
-        '/': (context) => const SplashScreen(), // Splash screen or auth flow
-        '/login': (context) => const LoginScreen(), // LoginScreen
-        '/signup': (context) => const SignupScreen(), // SignupScreen
-        '/service_details': (context) => const ServiceDetailsScreen(), // ServiceDetailsScreen
+        '/': (context) => const SplashScreen(),
+        '/login': (context) => const LoginScreen(),
+        '/signup': (context) => const SignupScreen(),
+        '/service_details': (context) => const ServiceDetailsScreen(),
+        '/main':
+            (context) => MainScreen(
+              currentUser:
+                  ModalRoute.of(context)!.settings.arguments
+                      as app_model.AppUser,
+            ),
       },
     );
   }
 }
 
-// Splash Screen or Authentication Flow
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Simulate fetching the current user (e.g., from shared preferences or an API)
-    final User currentUser = _fetchCurrentUser();
+    final AuthService authService = AuthService();
 
-    // Navigate to the appropriate screen based on the user's authentication status
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (currentUser.isServiceProvider || currentUser.name.isNotEmpty) {
-        // If the user is authenticated, navigate to MainScreen
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MainScreen(currentUser: currentUser),
-          ),
-        );
-      } else {
-        // If the user is not authenticated, navigate to LoginScreen
-        Navigator.pushReplacementNamed(context, '/login');
-      }
-    });
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        } else if (snapshot.hasData) {
+          // User is authenticated, convert Firebase User to AppUser
+          final firebaseUser = snapshot.data!;
+          final appUser = authService.firebaseUserToAppUser(firebaseUser);
 
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            CircularProgressIndicator(),
-            SizedBox(height: 20),
-            Text('Loading...'),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Simulate fetching the current user (replace with actual logic)
-  User _fetchCurrentUser() {
-    // Replace this with actual logic to fetch the user (e.g., from shared preferences or an API)
-    return User(
-      name: 'John Doe', // Replace with actual user data
-      isServiceProvider: true,
+          if (appUser != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.pushReplacementNamed(
+                context,
+                '/main',
+                arguments: appUser,
+              );
+            });
+          } else {
+            // Handle the case where appUser is null
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.pushReplacementNamed(context, '/login');
+            });
+          }
+        } else {
+          // User is not authenticated, navigate to LoginScreen
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Navigator.pushReplacementNamed(context, '/login');
+          });
+        }
+        return Container(); // Empty container while waiting for navigation
+      },
     );
   }
 }

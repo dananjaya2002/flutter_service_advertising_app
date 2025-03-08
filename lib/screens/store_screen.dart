@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import '../models/user.dart';
-import '../models/service.dart';
-import '../widgets/service_card.dart';
-import '../widgets/edit_item_button.dart';
-import 'add_store_popup.dart';
-import 'edit_service_popup.dart';
+import '../models/user.dart'; // Ensure this is the correct import for your User class
+import '../models/service.dart'; // Ensure this is the correct import for your Service class
+import '../widgets/service_card.dart'; // Ensure this widget exists
+import '../widgets/edit_item_button.dart'; // Ensure this widget exists
+import 'add_store_popup.dart'; // Ensure this popup exists
+import 'edit_service_popup.dart'; // Ensure this popup exists
 
 class StoreScreen extends StatefulWidget {
-  final User currentUser; // Pass the current user
+  final AppUser currentUser; // Pass the current user
   const StoreScreen({super.key, required this.currentUser});
 
   @override
@@ -33,7 +33,7 @@ class StoreScreenState extends State<StoreScreen> {
     ),
     Service(
       name: 'work 3',
-      description: 'description for work 3',// now this is not showing in ui so if we dont need it we can remove description
+      description: 'description for work 3',
       category: 'Engineering',
       rating: 4.0,
       image: 'assets/images/sec2.jpg', // Replace with actual image path
@@ -47,18 +47,18 @@ class StoreScreenState extends State<StoreScreen> {
     ),
   ];
 
-  // Toggle favorite status
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Shop Page')),
+      appBar: AppBar(
+        title: const Text('Shop Page'),
+        centerTitle: true,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child:
-            widget.currentUser.isServiceProvider
-                ? _buildServiceProviderUI()
-                : _buildUserUI(),
+        child: widget.currentUser.isServiceProvider
+            ? _buildServiceProviderUI()
+            : _buildUserUI(),
       ),
     );
   }
@@ -148,8 +148,7 @@ class StoreScreenState extends State<StoreScreen> {
       color: Colors.blue[50],
       child: GridView.builder(
         shrinkWrap: true, // Ensures the GridView fits within its parent
-        physics:
-            const NeverScrollableScrollPhysics(), // Disable scrolling for the GridView
+        physics: const NeverScrollableScrollPhysics(), // Disable scrolling for the GridView
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3, // Number of columns
           mainAxisSpacing: 8.0, // Spacing between rows
@@ -222,77 +221,77 @@ class StoreScreenState extends State<StoreScreen> {
 
   // List of services offered
   Widget _buildServiceList() {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Padding(
-        padding: EdgeInsets.symmetric(vertical: 8.0),
-        child: Text(
-          'Services Offered',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8.0),
+          child: Text(
+            'Services Offered',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
         ),
-      ),
-      SizedBox(
-        height: 120, // Fixed height for the horizontal scroll view
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal, // Horizontal scrolling
-          itemCount: services.length,
-          itemBuilder: (context, index) {
-            final service = services[index];
-            return _buildServiceItem(service);
-          },
+        SizedBox(
+          height: 120, // Fixed height for the horizontal scroll view
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal, // Horizontal scrolling
+            itemCount: services.length,
+            itemBuilder: (context, index) {
+              final service = services[index];
+              return _buildServiceItem(service);
+            },
+          ),
         ),
-      ),
-    ],
-  );
-}
+      ],
+    );
+  }
 
-Widget _buildServiceItem(Service service) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-    child: GestureDetector(
-      onTap: () {
-        //nothing to push
-      },
-      child: Container(
-        width: 150, // Fixed width for each service item  
-        margin: const EdgeInsets.symmetric(vertical: 2.0),      
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8.0),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withAlpha((0.3 * 255).toInt()),
-              spreadRadius: 1,
-              blurRadius: 3,
-              offset: const Offset(0, 2), // Shadow position
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (service.image != null)
-              Image.asset(
-                service.image!,
-                width: 80,
-                height: 80,
-                fit: BoxFit.cover,
-              )
-            else
-              const Icon(Icons.image_not_supported, size: 80, color: Colors.grey),
-            const SizedBox(height: 8),
-            Text(
-              service.name,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-          ],
+  Widget _buildServiceItem(Service service) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: GestureDetector(
+        onTap: () {
+          // Nothing to push
+        },
+        child: Container(
+          width: 150, // Fixed width for each service item
+          margin: const EdgeInsets.symmetric(vertical: 2.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8.0),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withAlpha((0.3 * 255).toInt()),
+                spreadRadius: 1,
+                blurRadius: 3,
+                offset: const Offset(0, 2), // Shadow position
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (service.image != null)
+                Image.asset(
+                  service.image!,
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
+                )
+              else
+                const Icon(Icons.image_not_supported, size: 80, color: Colors.grey),
+              const SizedBox(height: 8),
+              Text(
+                service.name,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   // Reviews section
   Widget _buildReviews() {
@@ -339,6 +338,7 @@ Widget _buildServiceItem(Service service) {
       builder: (BuildContext context) {
         return AddStorePopup(
           onSubmit: (storeDetails) {
+            // Update the user's status to service provider
             setState(() {
               widget.currentUser.isServiceProvider = true;
             });

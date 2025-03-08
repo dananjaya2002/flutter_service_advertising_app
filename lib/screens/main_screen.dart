@@ -7,7 +7,7 @@ import '../models/user.dart'; // Import User model
 import '../models/service.dart'; // Import Service model
 
 class MainScreen extends StatefulWidget {
-  final User currentUser; // Pass the current user to the MainScreen
+  final AppUser currentUser; // Pass the current user to the MainScreen
   const MainScreen({super.key, required this.currentUser});
 
   @override
