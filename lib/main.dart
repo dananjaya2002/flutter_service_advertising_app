@@ -17,7 +17,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'My App',
       theme: ThemeData(
-        scaffoldBackgroundColor: Colors.white,
         primarySwatch: Colors.blue,
       ),
       initialRoute: '/', // Default route (SplashScreen or AuthFlow)
