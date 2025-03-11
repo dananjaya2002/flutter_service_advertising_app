@@ -28,21 +28,57 @@ class _StoreScreenState extends State<StoreScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: widget.currentUser.isServiceProvider ? _buildServiceProviderUI() : _buildUserUI(),
+        child: widget.currentUser.isServiceProvider ? _buildUserUI() :_buildServiceProviderUI() ,
       ),
     );
   }
 
   Widget _buildUserUI() {
-    return Center(
-      child: Column(
+    return Container(
+      width: 450,
+      height: 150,
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 166, 213, 233),
+        borderRadius: BorderRadius.circular(8),
+       
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 2,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+
+       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text('You don’t have a store yet.'),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: _showAddStorePopup,
-            child: const Text('Add Store Page'),
+          const Text(
+            "Become a Seller",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+
+         const SizedBox(height: 10),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.rectangle,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.add, size: 24),
+              onPressed: () {
+                //when click open bottom sheet
+                _displayBottomSheet(context);
+              },
+            ),
           ),
         ],
       ),
@@ -87,6 +123,81 @@ class _StoreScreenState extends State<StoreScreen> {
       },
     );
   }
+
+  Future _displayBottomSheet(BuildContext context){
+    return showModalBottomSheet(
+      context: context,
+       backgroundColor: Colors.white,
+       barrierColor: Colors.black87.withOpacity(0.5),
+       isDismissible: true,
+       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top:Radius.circular(30))),
+      builder: (context) => SingleChildScrollView(
+        child: Container(
+          padding: const EdgeInsets.all(22.0),
+          child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          const Text(
+            'Add Store',
+            style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 25,
+            ),
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            decoration: InputDecoration(
+          labelText: 'Store Name',
+          border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            decoration: InputDecoration(
+          labelText: 'Description',
+          border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            decoration: InputDecoration(
+          labelText: 'Phone Number',
+          border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            decoration: InputDecoration(
+          labelText: 'Address',
+          border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            decoration: InputDecoration(
+          labelText: 'Location',
+          border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 20),
+            ElevatedButton(
+            onPressed: () {
+              // Handle form submission
+            },
+            style: ElevatedButton.styleFrom(
+            
+            backgroundColor: Colors.blue,
+              minimumSize: const Size.fromHeight(50),
+            ),
+            child: const Text('Add Store'),
+            ),
+          ],
+          ),
+        ),
+      ),
+    );
+  }
+  
 
   void _showEditServicesPopup() {
     showDialog(
