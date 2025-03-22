@@ -1,83 +1,81 @@
 import 'package:flutter/material.dart';
-import '../models/category.dart';
 import '../models/service.dart';
-import '../widgets/category_item.dart';
 import '../widgets/service_card.dart';
+import '../models/category.dart';
 
-class HomeScreen extends StatelessWidget {
-  // Dummy categories data
-  final List<Category> _categories = [
-    Category(title: 'Landscaping', imageUrl: ''),
-    Category(title: 'Outdoor', imageUrl: ''),
-    Category(title: 'Repairs', imageUrl: ''),
-    Category(title: 'Maintenance', imageUrl: ''),
-  ];
+class HomeScreen extends StatefulWidget {
+  // Callback to toggle favorite status
+  final Function(Service) onToggleFavorite;
 
+  const HomeScreen({
+    super.key,
+    required this.onToggleFavorite,
+  });
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   // Dummy services data
-  final List<Service> _services = [
+  final List<Service> _allServices = [
     Service(
       name: 'Tronic LK',
       description:
           'Offers high-quality electronic components and tools, including Arduinos, Raspberry Pis, and 3D printers.',
+      category: 'Electronics',
       rating: 4.4,
-      image:
-          'assets/images/service_provider.jpg', // Replace with actual image path
+      image: 'assets/images/service_provider.jpg', // Replace with actual image path
     ),
     Service(
       name: 'Slim Co Eng.',
       description: 'All kinds of engineering works',
+      category: 'Repairs',
       rating: 4.3,
-
-      // without an image
+      image: null, // No image for this service
+    ),
+    Service(
+      name: 'Next Service',
+      description: 'Service description',
+      category: 'Maintenance',
+      rating: 2.3,
+      image: null, // No image for this service
     ),
   ];
 
-  HomeScreen({super.key});
+  // Track the currently selected category
+  String? _selectedCategory;
 
-  // Show all categories in a popup dialog
-  void _showAllCategoriesPopup(BuildContext context) {
-    // List of categories to display in the popup
-    final List<String> categories = [
-      'Landscaping',
-      'Outdoor',
-      'Repairs',
-      'Maintenance',
-    ];
+  // Track the search query
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('All Categories'),
-            content: SizedBox(
-              width:
-                  double.maxFinite, // Allow the content to take up full width
-              child: ListView.builder(
-                shrinkWrap: true, // Ensure the ListView fits within the dialog
-                itemCount: categories.length,
-                itemBuilder: (context, index) {
-                  final category = categories[index];
-                  return ListTile(
-                    title: Text(category),
-                    onTap: () {
-                      // Handle category tap (e.g., navigate to a specific category screen)
-                      Navigator.pop(context); // Close the dialog
-                      // You can add navigation logic here if needed
-                    },
-                  );
-                },
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context); // Close the dialog
-                },
-                child: const Text('Close'),
-              ),
-            ],
-          ),
-    );
+  // Filtered services based on the selected category and search query
+  List<Service> get _filteredServices {
+    List<Service> filtered = _allServices;
+
+    // Filter by category (if selected)
+    if (_selectedCategory != null) {
+      filtered = filtered.where((service) => service.category == _selectedCategory).toList();
+    }
+
+    // Filter by search query (case-insensitive)
+    if (_searchQuery.isNotEmpty) {
+      filtered = filtered
+          .where((service) => service.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+          .toList();
+    }
+
+    return filtered;
+  }
+
+  // Clear all filters
+  void _clearFilters() {
+    setState(() {
+      _selectedCategory = null; // Reset the selected category
+      _searchQuery = ''; // Clear the search query
+      _searchController.clear(); // Clear the search bar text
+    });
   }
 
   // Navigate to service details screen
@@ -87,6 +85,12 @@ class HomeScreen extends StatelessWidget {
       '/service_details',
       arguments: service, // Pass the entire service object
     );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose(); // Dispose the controller to avoid memory leaks
+    super.dispose();
   }
 
   @override
@@ -118,6 +122,7 @@ class HomeScreen extends StatelessWidget {
             children: [
               // Search Bar
               TextField(
+                controller: _searchController,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.white,
@@ -126,8 +131,13 @@ class HomeScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(30),
                     borderSide: BorderSide.none,
                   ),
-                  hintText: 'Search',
+                  hintText: 'Search by service name',
                 ),
+                onChanged: (query) {
+                  setState(() {
+                    _searchQuery = query; // Update the search query
+                  });
+                },
               ),
               const SizedBox(height: 20),
 
@@ -140,8 +150,8 @@ class HomeScreen extends StatelessWidget {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   TextButton(
-                    onPressed: () => _showAllCategoriesPopup(context),
-                    child: const Text('See All'),
+                    onPressed: _clearFilters,
+                    child: const Text('Clear Filters'),
                   ),
                 ],
               ),
@@ -154,32 +164,107 @@ class HomeScreen extends StatelessWidget {
                   scrollDirection: Axis.horizontal,
                   itemCount: _categories.length,
                   itemBuilder: (context, index) {
+                    final category = _categories[index];
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: CategoryItem(category: _categories[index]),
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedCategory = category.title; // Update the selected category
+                          });
+                        },
+                        child: CategoryItem(category: category), // Use the updated CategoryItem
+                      ),
                     );
                   },
                 ),
               ),
               const SizedBox(height: 20),
 
+              // Display the selected category or search query (if any)
+              if (_selectedCategory != null || _searchQuery.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (_selectedCategory != null)
+                        Text(
+                          'Showing services for: $_selectedCategory',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                      if (_searchQuery.isNotEmpty)
+                        Text(
+                          'Search results for: "$_searchQuery"',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                      TextButton(
+                        onPressed: _clearFilters,
+                        child: const Text(
+                          'Clear Filters',
+                          style: TextStyle(color: Colors.blue),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
               // List of Service Cards
               Column(
-                children:
-                    _services.map((service) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: GestureDetector(
-                          onTap: () => _onServiceCardTap(context, service),
-                          child: ServiceCard(service: service),
-                        ),
-                      );
-                    }).toList(),
+                children: _filteredServices.map((service) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 0),
+                    child: ServiceCard(
+                      service: service,
+                      isFavorite: service.isFavorite,
+                      onFavoriteTap: () {
+                        widget.onToggleFavorite(service); // Toggle favorite status
+                      },
+                      onTap: () => _onServiceCardTap(context, service),
+                    ),
+                  );
+                }).toList(),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+// Dummy categories data
+final List<Category> _categories = [
+  Category(title: 'Landscaping', image: 'assets/images/landscaping.png'),
+  Category(title: 'Outdoor', image: 'assets/images/wells.png'),
+  Category(title: 'Repairs', image: 'assets/images/others.png'),
+  Category(title: 'Maintenance', image: 'assets/images/repair.png'),
+];
+
+// CategoryItem Widget
+class CategoryItem extends StatelessWidget {
+  final Category category;
+
+  const CategoryItem({super.key, required this.category});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Display the category image
+        CircleAvatar(
+          radius: 35, // Adjust the size of the image
+          backgroundImage: AssetImage(category.image), // Load the image from assets
+          backgroundColor: Colors.grey[200], // Fallback background color
+        ),
+        const SizedBox(height: 8), // Add spacing between the image and title
+        // Display the category title
+        Text(
+          category.title,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 14),
+        ),
+      ],
     );
   }
 }

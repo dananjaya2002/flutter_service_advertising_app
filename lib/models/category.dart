@@ -1,6 +1,7 @@
 class Category {
   final String title;
-  final String imageUrl;
+  final String image;
 
-  Category({required this.title, required this.imageUrl});
+  // Constructor with named parameters
+  Category({required this.title, required this.image});
 }
