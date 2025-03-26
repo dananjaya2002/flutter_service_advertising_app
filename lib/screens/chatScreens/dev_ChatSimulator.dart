@@ -1,19 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:test_2/screens/chatScreens/chatMain.dart';
-import '../../models/chatModels/chatUser.dart';
+import '../../models/chatModels/chat_user.dart';
 
-class DevChatSimulator extends StatelessWidget {
+class DevChatSimulator extends StatefulWidget {
   const DevChatSimulator({super.key});
 
+  @override
+  _DevChatSimulatorState createState() => _DevChatSimulatorState();
+}
+
+class _DevChatSimulatorState extends State<DevChatSimulator> {
+  // Hard-coded flag to auto-navigate.
+  final bool autoNavigate = false;
   // Two variables storing the IDs.
   final String customerID = "9682ySNqk0txuAGq75JI";
   final String serviceProviderID = "Idgkdk2tkKPEplx46z3h";
   final String chatRoomID = "Njf6u4bzzDIcSLKEtLz7";
+  final int initialTabIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    if (autoNavigate) {
+      // Schedule the navigation after the first frame to ensure context is available.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // You can choose which user to simulate; here we're using customerID.
+        navigateToChatMain(customerID, 0);
+      });
+    }
+  }
 
   // Function to create a chat room document in Firestore.
   Future<void> createChatRoom() async {
-    // Prepare the document data.
     Map<String, dynamic> chatRoomData = {
       "customer": {
         "docRef": customerID,
@@ -29,14 +48,15 @@ class DevChatSimulator extends StatelessWidget {
         "docRef": serviceProviderID,
         "name": "Negombo Auto Experts",
         "profileImageUrl":
-            "https://images.unsplash.com/photo-1606577924006-27d39b132ae2?q=80&w=1976&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-        "timestamp": "2025-03-21T14:56:57+05:30",
+            "https://images.unsplash.com/photo-1606577924006-27d39b132ae2?q=80&w=1976&auto=format&fit=crop&ixlib=rb-4.0.3",
+        "chatRoomCreatedDate": "2025-03-21T14:56:57+05:30",
+        "lastMessageReceivedDate": "2025-03-21T14:56:57+05:30",
       },
     };
 
-    // Create the document in Firestore.
     try {
       await FirebaseFirestore.instance.collection("ChatRoom").add(chatRoomData);
+      print('Chat room created successfully.');
     } catch (e) {
       print("Error creating chat room: $e");
       throw Exception("Error creating chat room: $e");
@@ -44,16 +64,20 @@ class DevChatSimulator extends StatelessWidget {
   }
 
   // Navigate to ChatMain, passing only the userID.
-  void navigateToChatMain(BuildContext context, String userID) {
-    // For demonstration, we assign a placeholder chatRoomID.
+  void navigateToChatMain(String userID, int tabIndex) {
     ChatUser chatUser = ChatUser(
-      userID: userID,
-      userRole: "",
-      chatRoomID: chatRoomID,
+      id: userID,
+      chatRoomDocRefId: chatRoomID,
+      userRole: userID == customerID ? "customer" : "serviceProvider",
+      name:
+          userID == customerID ? "Isuru Kumarasinghe" : "Negombo Auto Experts",
     );
+
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => ChatMain(chatUser: chatUser)),
+      MaterialPageRoute(
+        builder: (_) => ChatMain(chatUser: chatUser, initialTabIndex: tabIndex),
+      ),
     );
   }
 
@@ -72,7 +96,7 @@ class DevChatSimulator extends StatelessWidget {
               height: 60,
               child: ElevatedButton(
                 onPressed: () {
-                  navigateToChatMain(context, customerID);
+                  navigateToChatMain(customerID, 0);
                 },
                 child: const Text('Customer'),
               ),
@@ -84,7 +108,7 @@ class DevChatSimulator extends StatelessWidget {
               height: 60,
               child: ElevatedButton(
                 onPressed: () {
-                  navigateToChatMain(context, serviceProviderID);
+                  navigateToChatMain(serviceProviderID, 1);
                 },
                 child: const Text('Service Provider'),
               ),
@@ -92,9 +116,9 @@ class DevChatSimulator extends StatelessWidget {
           ],
         ),
       ),
-      // // Bottom button: Anchored at the bottom center.
+      // Uncomment the following if you want a button to create a chat room.
       // bottomNavigationBar: Padding(
-      //   padding: const EdgeInsets.all(16.0), // Margin for the bottom button.
+      //   padding: const EdgeInsets.all(16.0),
       //   child: SizedBox(
       //     width: double.infinity,
       //     height: 60,
@@ -108,9 +132,9 @@ class DevChatSimulator extends StatelessWidget {
       //             ),
       //           );
       //         } catch (e) {
-      //           ScaffoldMessenger.of(
-      //             context,
-      //           ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      //           ScaffoldMessenger.of(context).showSnackBar(
+      //             SnackBar(content: Text('Error: $e')),
+      //           );
       //         }
       //       },
       //       child: const Text('Create a Chat Room'),

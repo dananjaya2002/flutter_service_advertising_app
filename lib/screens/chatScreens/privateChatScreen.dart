@@ -1,56 +1,231 @@
 import 'package:flutter/material.dart';
-import 'package:test_2/screens/chatScreens/textChatArea.dart';
-import '../../models/chatModels/chatUser.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:test_2/models/chatModels/chat_room.dart';
+import '../../controllers/chat_rooms_controller.dart';
+import '../../models/chatModels/chat_rooms_query_params.dart';
+import '../../models/chatModels/chat_user.dart';
+import 'textChatArea.dart';
 
-class PrivateChatScreen extends StatelessWidget {
+class PrivateChatScreen extends ConsumerStatefulWidget {
   final ChatUser chatUser;
 
   const PrivateChatScreen({Key? key, required this.chatUser}) : super(key: key);
 
   @override
+  _PrivateChatScreenState createState() => _PrivateChatScreenState();
+}
+
+class _PrivateChatScreenState extends ConsumerState<PrivateChatScreen> {
+  late ChatRoomsQueryParams _params;
+
+  @override
+  void initState() {
+    super.initState();
+    _params = ChatRoomsQueryParams(role: 'customer', id: widget.chatUser.id);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(chatRoomsProvider(_params).notifier).fetchInitialChatRooms();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Simulated list of chat rooms or messages.
-        Expanded(
-          child: ListView.builder(
-            itemCount: 10,
-            itemBuilder: (context, index) {
-              return ListTile(
-                title: Text('Chat Room ${index + 1}'),
-                onTap: () {
-                  // Optionally, you could navigate to TextChatArea here as well.
-                },
-              );
-            },
+    final chatRoomsState = ref.watch(chatRoomsProvider(_params));
+
+    return Scaffold(
+      body: Column(
+        children: [
+          Expanded(
+            child:
+                chatRoomsState.isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : chatRoomsState.errorMessage != null
+                    ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Error: ${chatRoomsState.errorMessage}'),
+                          ElevatedButton(
+                            onPressed:
+                                () =>
+                                    ref
+                                        .read(
+                                          chatRoomsProvider(_params).notifier,
+                                        )
+                                        .fetchInitialChatRooms(),
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    )
+                    : chatRoomsState.chatRooms.isEmpty
+                    ? const Center(
+                      child: Text(
+                        'No chat rooms found',
+                        style: TextStyle(color: Colors.grey, fontSize: 18),
+                      ),
+                    )
+                    : ListView.separated(
+                      itemCount: chatRoomsState.chatRooms.length,
+                      separatorBuilder:
+                          (context, index) => const Divider(
+                            height: 1,
+                            color: Colors.grey,
+                            indent: 80,
+                          ),
+                      itemBuilder: (context, index) {
+                        final room = chatRoomsState.chatRooms[index];
+                        return _ChatRoomItem(
+                          room: room,
+                          onTap: () {
+                            ChatUser updatedChatUser = ChatUser(
+                              id: widget.chatUser.id,
+                              chatRoomDocRefId: room.id,
+                              userRole: "customer",
+                              name: widget.chatUser.name,
+                            );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (_) => TextChatArea(
+                                      chatUser: updatedChatUser,
+                                      otherUserName: room.serviceProvider.name,
+                                    ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
           ),
-        ),
-        // Button to navigate to the TextChatArea (chat interface).
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SizedBox(
-            width: double.infinity,
-            height: 60,
-            child: ElevatedButton(
-              onPressed: () {
-                // Create a new ChatUser with an updated userRole value.
-                ChatUser updatedChatUser = ChatUser(
-                  userID: chatUser.userID,
-                  userRole: "personal", // Set the desired role here.
-                  chatRoomID: chatUser.chatRoomID,
-                );
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => TextChatArea(chatUser: updatedChatUser),
-                  ),
-                );
-              },
-              child: const Text("Go to Chat Area"),
+          if (!chatRoomsState.isLoading)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SizedBox(
+                width: double.infinity,
+                height: 60,
+                child: ElevatedButton(
+                  onPressed:
+                      chatRoomsState.chatRooms.isNotEmpty
+                          ? () async {
+                            await ref
+                                .read(chatRoomsProvider(_params).notifier)
+                                .loadMoreChatRooms();
+                          }
+                          : null,
+                  child: const Text("Load More"),
+                ),
+              ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ChatRoomItem extends StatelessWidget {
+  final ChatRoom room;
+  final VoidCallback onTap;
+
+  const _ChatRoomItem({Key? key, required this.room, required this.onTap})
+    : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: Colors.white, // Set your desired background color here
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+          child: Row(
+            children: [
+              // Column 1: Profile Avatar
+              CircleAvatar(
+                radius: 30,
+                backgroundColor: Colors.teal.shade100,
+                backgroundImage:
+                    room.serviceProvider.profileImageUrl.isNotEmpty
+                        ? NetworkImage(room.serviceProvider.profileImageUrl)
+                        : null,
+                child:
+                    room.serviceProvider.profileImageUrl.isEmpty
+                        ? Text(
+                          room.customer.name[0].toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.teal,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                        : null,
+              ),
+              const SizedBox(width: 16),
+              // Column 2: Message Information
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // First row: Other Person's Name
+                    Text(
+                      room.serviceProvider.name,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    // Second row: Last Message and Timestamp
+                    Row(
+                      children: [
+                        // Last text message with ellipsis if long
+                        Expanded(
+                          child: Text(
+                            room.lastMessage ?? 'No messages yet',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 14,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Timestamp
+                        Text(
+                          _formatTime(
+                            room.lastMessageReceivedDate ?? DateTime.now(),
+                          ),
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
-      ],
+      ),
     );
+  }
+
+  // Helper method to format date
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
+  }
+
+  // Helper method to format time
+  String _formatTime(DateTime date) {
+    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 }
