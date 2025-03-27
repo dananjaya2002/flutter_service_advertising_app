@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:test_2/controllers/chat_controller.dart';
 
 import '../../../controllers/agreement_controller.dart';
 import '../../../models/chatModels/agreement_status_model.dart';
@@ -9,8 +10,13 @@ import '../../../models/chatModels/chat_user.dart'; // Ensure ChatUser is define
 
 class AgreementBanner extends ConsumerWidget {
   final ChatUser chatUser;
+  final String chatRoomDocRefId;
 
-  const AgreementBanner({Key? key, required this.chatUser}) : super(key: key);
+  const AgreementBanner({
+    Key? key,
+    required this.chatUser,
+    required this.chatRoomDocRefId,
+  }) : super(key: key);
 
   String _formatDate(DateTime? date) {
     if (date == null) return "";
@@ -58,7 +64,16 @@ class AgreementBanner extends ConsumerWidget {
                 await ref
                     .read(agreementProvider(chatUser.chatRoomDocRefId).notifier)
                     .sendAgreementRequest();
-                // (Additional logic such as sending a chat message is handled elsewhere.)
+
+                // Now send the corresponding chat message:
+                await ref
+                    .read(chatControllerProvider.notifier)
+                    .sendMessage(
+                      chatRoomDocRefId: chatUser.chatRoomDocRefId,
+                      userID: chatUser.id,
+                      message: "<Agreement Request>",
+                      messageType: "agreementRequest",
+                    );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor:

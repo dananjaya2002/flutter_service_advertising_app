@@ -4,7 +4,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:test_2/models/chatModels/chat_message.dart';
-import 'package:test_2/screens/chatScreens/chat_agreement_screen.dart';
+import 'package:test_2/screens/chatScreens/chat_widgets/chat_agreement_message.dart';
 import 'package:test_2/screens/chatScreens/chat_widgets/agreement_banner.dart';
 import '../../models/chatModels/chat_user.dart';
 import '../../controllers/chat_controller.dart';
@@ -124,7 +124,10 @@ class _TextChatAreaState extends ConsumerState<TextChatArea> {
             ),
             widget.chatUser.userRole == 'serviceProvider'
                 ? // AgreementBanner component overlay
-                AgreementBanner(chatUser: widget.chatUser)
+                AgreementBanner(
+                  chatUser: widget.chatUser,
+                  chatRoomDocRefId: widget.chatUser.chatRoomDocRefId,
+                )
                 : Container(),
           ],
         ),
@@ -265,7 +268,7 @@ class _ChatMessageItem extends StatelessWidget {
               isOwnMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
             // Conditional rendering based on message type
-            message.messageType == 'AgreementRequest'
+            message.messageType == 'agreementRequest'
                 ? ChatAgreementScreen(
                   chatRoomDocRefId: chatUser.chatRoomDocRefId,
                   userRole: chatUser.userRole,

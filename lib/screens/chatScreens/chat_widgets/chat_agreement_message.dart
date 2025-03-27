@@ -1,7 +1,8 @@
 // screens/chat_agreement_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../controllers/chat_agreement_controller.dart';
+import 'package:test_2/models/chatModels/chat_agreement_params.dart';
+import '../../../controllers/chat_agreement_controller.dart';
 
 class ChatAgreementScreen extends ConsumerStatefulWidget {
   final String chatRoomDocRefId;
@@ -24,10 +25,11 @@ class _ChatAgreementScreenState extends ConsumerState<ChatAgreementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(chatAgreementProvider({
-      'chatRoomDocRefId': widget.chatRoomDocRefId,
-      'userRole': widget.userRole,
-    }));
+    final params = ChatAgreementParams(
+      chatRoomDocRefId: widget.chatRoomDocRefId,
+      userRole: widget.userRole,
+    );
+    final state = ref.watch(chatAgreementProvider(params));
 
     // Determine dynamic background color; accepted state takes priority.
     Color buttonColor;
@@ -81,17 +83,17 @@ class _ChatAgreementScreenState extends ConsumerState<ChatAgreementScreen> {
                 isPressed = false;
               });
             },
-            onTap: () async {
-              await ref
-                  .read(chatAgreementProvider({
-                'chatRoomDocRefId': widget.chatRoomDocRefId,
-                'userRole': widget.userRole,
-              }).notifier)
-                  .acceptAgreement();
-              if (state.accepted == false && widget.onAccept != null) {
-                widget.onAccept!();
-              }
-            },
+            onTap:
+                state.initialLoading
+                    ? null
+                    : () async {
+                      await ref
+                          .read(chatAgreementProvider(params).notifier)
+                          .acceptAgreement();
+                      if (state.accepted && widget.onAccept != null) {
+                        widget.onAccept!();
+                      }
+                    },
             child: Container(
               width: MediaQuery.of(context).size.width * 0.8,
               height: 56,
@@ -107,18 +109,19 @@ class _ChatAgreementScreenState extends ConsumerState<ChatAgreementScreen> {
                 ],
               ),
               alignment: Alignment.center,
-              child: (state.loading || state.initialLoading)
-                  ? const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-              )
-                  : Text(
-                state.accepted ? "Accepted" : "Accept",
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
+              child:
+                  (state.loading || state.initialLoading)
+                      ? const CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      )
+                      : Text(
+                        state.accepted ? "Accepted" : "Accept",
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
             ),
           ),
         ],
