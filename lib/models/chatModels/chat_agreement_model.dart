@@ -5,17 +5,15 @@ class ChatAgreement {
   final bool accepted;
   final DateTime? acceptedTime;
 
-  ChatAgreement({
-    required this.accepted,
-    this.acceptedTime,
-  });
+  ChatAgreement({required this.accepted, this.acceptedTime});
 
   factory ChatAgreement.fromMap(Map<String, dynamic> data) {
     return ChatAgreement(
-      accepted: data['agreement'] == 'accepted',
-      acceptedTime: data['acceptedTime'] != null
-          ? (data['acceptedTime'] as Timestamp).toDate()
-          : null,
+      accepted: data['agreementStatus'] == 'accepted',
+      acceptedTime:
+          data['acceptedTime'] != null
+              ? (data['acceptedTime'] as Timestamp).toDate()
+              : null,
     );
   }
 }

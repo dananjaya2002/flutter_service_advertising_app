@@ -3,7 +3,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/chatModels/agreement_status_model.dart';
+import '../models/chatModels/agreement_banner_model.dart';
 
 class AgreementController extends StateNotifier<AgreementStatusModel> {
   final String chatRoomDocRefId;
@@ -30,7 +30,7 @@ class AgreementController extends StateNotifier<AgreementStatusModel> {
   Future<void> sendAgreementRequest() async {
     try {
       await _firestore.collection("ChatRoom").doc(chatRoomDocRefId).update({
-        'agreementStatus': 'Requested',
+        'agreementStatus': 'requested',
         'agreementRequestedDate': FieldValue.serverTimestamp(),
       });
     } catch (error) {

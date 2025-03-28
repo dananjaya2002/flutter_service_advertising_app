@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:test_2/models/chatModels/chat_agreement_params.dart';
 import '../models/chatModels/chat_agreement_model.dart';
+import 'dart:async'; // Import for StreamSubscription
 
 class ChatAgreementState {
   final bool accepted;
@@ -45,30 +46,41 @@ class ChatAgreementController extends StateNotifier<ChatAgreementState> {
   final String chatRoomDocRefId;
   final String userRole; // "customer" or "serviceProvider"
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  StreamSubscription? _subscription; // Add StreamSubscription
 
   ChatAgreementController({
     required this.chatRoomDocRefId,
     required this.userRole,
   }) : super(ChatAgreementState()) {
-    _checkAgreementStatus();
+    _listenForAgreementChanges(); // Use listener instead of _checkAgreementStatus
   }
 
-  Future<void> _checkAgreementStatus() async {
-    try {
-      final docRef = _firestore.collection("ChatRoom").doc(chatRoomDocRefId);
-      final docSnap = await docRef.get();
-      if (docSnap.exists) {
-        final data = docSnap.data() as Map<String, dynamic>;
-        final agreement = ChatAgreement.fromMap(data);
-        if (agreement.accepted) {
-          state = state.copyWith(accepted: true);
-        }
-      }
-    } catch (error) {
-      print("Error checking agreement status: $error");
-    } finally {
-      state = state.copyWith(initialLoading: false);
-    }
+  void _listenForAgreementChanges() {
+    _subscription = _firestore
+        .collection("ChatRoom")
+        .doc(chatRoomDocRefId)
+        .snapshots()
+        .listen(
+          (docSnap) {
+            if (docSnap.exists) {
+              final data = docSnap.data() as Map<String, dynamic>;
+              final agreementStatus = ChatAgreement.fromMap(data);
+              state = state.copyWith(
+                accepted: agreementStatus.accepted,
+                initialLoading:
+                    false, // Initial loading is done after first data received.
+              );
+            } else {
+              state = state.copyWith(
+                initialLoading: false,
+              ); // Handle doc not existing.
+            }
+          },
+          onError: (error) {
+            print("Error listening for agreement changes: $error");
+            state = state.copyWith(initialLoading: false); // Handle error.
+          },
+        );
   }
 
   Future<void> acceptAgreement() async {
@@ -83,8 +95,8 @@ class ChatAgreementController extends StateNotifier<ChatAgreementState> {
     try {
       final docRef = _firestore.collection("ChatRoom").doc(chatRoomDocRefId);
       await docRef.update({
-        'agreement': 'accepted',
-        'acceptedTime': FieldValue.serverTimestamp(),
+        'agreementStatus': 'accepted',
+        'agreementAcceptedDate': FieldValue.serverTimestamp(),
       });
       state = state.copyWith(accepted: true);
     } catch (error) {
@@ -92,5 +104,11 @@ class ChatAgreementController extends StateNotifier<ChatAgreementState> {
     } finally {
       state = state.copyWith(loading: false);
     }
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel(); // Cancel the subscription
+    super.dispose();
   }
 }

@@ -103,25 +103,6 @@ class _ServiceChatScreenState extends ConsumerState<ServiceChatScreen> {
                       },
                     ),
           ),
-          if (!chatRoomsState.isLoading)
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SizedBox(
-                width: double.infinity,
-                height: 60,
-                child: ElevatedButton(
-                  onPressed:
-                      chatRoomsState.chatRooms.isNotEmpty
-                          ? () async {
-                            await ref
-                                .read(chatRoomsProvider(_params).notifier)
-                                .loadMoreChatRooms();
-                          }
-                          : null,
-                  child: const Text("Load More"),
-                ),
-              ),
-            ),
         ],
       ),
     );

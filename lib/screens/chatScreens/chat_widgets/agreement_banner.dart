@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:test_2/controllers/chat_controller.dart';
 
-import '../../../controllers/agreement_controller.dart';
-import '../../../models/chatModels/agreement_status_model.dart';
+import '../../../controllers/agreement_banner_controller.dart';
+import '../../../models/chatModels/agreement_banner_model.dart';
 import '../../../models/chatModels/chat_user.dart'; // Ensure ChatUser is defined here
 
 class AgreementBanner extends ConsumerWidget {
@@ -34,15 +34,19 @@ class AgreementBanner extends ConsumerWidget {
     Color baseButtonColor = Colors.blue;
     String detailsText = "";
     bool actionLocked = false; // Used to prevent multiple triggers.
+    String buttonText = "Send Agreement";
 
-    if (agreementState.agreementStatus == 'Requested') {
-      baseButtonColor = Colors.yellow;
+    if (agreementState.agreementStatus == 'requested') {
+      baseButtonColor = const Color.fromARGB(255, 0, 233, 8);
       detailsText =
           "Date: ${_formatDate(agreementState.agreementRequestedDate)}";
+      buttonText = "Agreement Sent";
       actionLocked = true;
-    } else if (agreementState.agreementStatus == 'Accepted') {
-      baseButtonColor = Colors.green;
-      detailsText = _formatDate(agreementState.agreementAcceptedDate);
+    } else if (agreementState.agreementStatus == 'accepted') {
+      baseButtonColor = const Color.fromARGB(255, 131, 180, 132);
+      detailsText =
+          "Date: ${_formatDate(agreementState.agreementAcceptedDate)}";
+      buttonText = "Agreement Sent";
       actionLocked = true;
     }
 
@@ -51,8 +55,13 @@ class AgreementBanner extends ConsumerWidget {
       left: 0,
       right: 0,
       child: Container(
-        padding: const EdgeInsets.all(16.0),
-        color: Colors.black87, // Background for the entire component.
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        color: const Color.fromARGB(
+          193,
+          0,
+          0,
+          0,
+        ), // Background for the entire component.
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -76,6 +85,7 @@ class AgreementBanner extends ConsumerWidget {
                     );
               },
               style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
                 backgroundColor:
                     actionLocked
                         ? baseButtonColor.withOpacity(0.5)
@@ -85,16 +95,13 @@ class AgreementBanner extends ConsumerWidget {
                   horizontal: 24.0,
                 ),
               ),
-              child: const Text(
-                "Send Agreement",
-                style: TextStyle(fontSize: 16.0),
-              ),
+              child: Text(buttonText, style: TextStyle(fontSize: 16.0)),
             ),
             const SizedBox(height: 8.0),
             // Second row: Display date details if available.
             Text(
               detailsText,
-              style: const TextStyle(fontSize: 16.0, color: Colors.white),
+              style: const TextStyle(fontSize: 14, color: Colors.white),
               textAlign: TextAlign.center,
             ),
           ],
