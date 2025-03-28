@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:test_2/models/chatModels/chat_message.dart';
 import 'package:test_2/screens/chatScreens/chat_widgets/chat_agreement_message.dart';
 import 'package:test_2/screens/chatScreens/chat_widgets/agreement_banner.dart';
+import 'package:test_2/screens/chatScreens/chat_widgets/move_to_rating_page.dart';
 import '../../models/chatModels/chat_user.dart';
 import '../../controllers/chat_controller.dart';
 
@@ -98,6 +99,13 @@ class _TextChatAreaState extends ConsumerState<TextChatArea> {
                               );
                             },
                           ),
+                ),
+                // MoveToRatingPage widget.
+                AnimatedSwitcher(
+                  duration: Duration(milliseconds: 300),
+                  child: MoveToRatingPage(
+                    chatUser: widget.chatUser,
+                  ), // Internally handles its own visibility.
                 ),
                 // Input area.
                 _ChatInputSection(

@@ -16,6 +16,8 @@ class AgreementController extends StateNotifier<AgreementStatusModel> {
     _subscription = _firestore
         .collection("ChatRoom")
         .doc(chatRoomDocRefId)
+        .collection("AgreementRecords")
+        .doc("agreementLogDoc")
         .snapshots()
         .listen((docSnap) {
           if (docSnap.exists) {
@@ -29,10 +31,15 @@ class AgreementController extends StateNotifier<AgreementStatusModel> {
   /// This method updates the ChatRoom document with agreement request fields.
   Future<void> sendAgreementRequest() async {
     try {
-      await _firestore.collection("ChatRoom").doc(chatRoomDocRefId).update({
-        'agreementStatus': 'requested',
-        'agreementRequestedDate': FieldValue.serverTimestamp(),
-      });
+      await _firestore
+          .collection("ChatRoom")
+          .doc(chatRoomDocRefId)
+          .collection("AgreementRecords")
+          .doc("agreementLogDoc")
+          .set({
+            'agreementStatus': 'requested',
+            'agreementRequestedDate': FieldValue.serverTimestamp(),
+          });
     } catch (error) {
       print("Error sending agreement request: $error");
     }

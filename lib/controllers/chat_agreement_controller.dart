@@ -59,6 +59,8 @@ class ChatAgreementController extends StateNotifier<ChatAgreementState> {
     _subscription = _firestore
         .collection("ChatRoom")
         .doc(chatRoomDocRefId)
+        .collection("AgreementRecords")
+        .doc("agreementLogDoc")
         .snapshots()
         .listen(
           (docSnap) {
@@ -93,7 +95,11 @@ class ChatAgreementController extends StateNotifier<ChatAgreementState> {
     state = state.copyWith(loading: true);
 
     try {
-      final docRef = _firestore.collection("ChatRoom").doc(chatRoomDocRefId);
+      final docRef = _firestore
+          .collection("ChatRoom")
+          .doc(chatRoomDocRefId)
+          .collection("AgreementRecords")
+          .doc("agreementLogDoc");
       await docRef.update({
         'agreementStatus': 'accepted',
         'agreementAcceptedDate': FieldValue.serverTimestamp(),
