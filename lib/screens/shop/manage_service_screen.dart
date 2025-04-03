@@ -3,11 +3,11 @@ import 'package:provider/provider.dart';
 import '../../providers/shop_provider.dart';
 
 const String defaultImageAsset =
-    'assets/icons/others.png'; // Default placeholder image
+    'assets/icons/others.png'; 
 
 class ManageServicesScreen extends StatefulWidget {
   final List<Map<String, dynamic>>
-  services; // List of services with name, description, and image
+  services; 
   final Function(List<Map<String, dynamic>>) onSave;
 
   const ManageServicesScreen({
@@ -26,12 +26,12 @@ class _ManageServicesScreenState extends State<ManageServicesScreen> {
   final TextEditingController _serviceDescriptionController =
       TextEditingController();
   String?
-  _selectedImageUrl; // Temporary variable to store the selected image URL
+  _selectedImageUrl; 
 
   @override
   void initState() {
     super.initState();
-    _services = List.from(widget.services); // Copy the services list
+    _services = List.from(widget.services); 
   }
 
   @override
@@ -47,7 +47,7 @@ class _ManageServicesScreenState extends State<ManageServicesScreen> {
         _services.add({
           'name': _serviceNameController.text.trim(),
           'description': _serviceDescriptionController.text.trim(),
-          'imageUrl': _selectedImageUrl, // Keep null if no image is selected
+          'imageUrl': _selectedImageUrl, 
         });
         _selectedImageUrl =
             null; // Reset the image URL after adding the service
