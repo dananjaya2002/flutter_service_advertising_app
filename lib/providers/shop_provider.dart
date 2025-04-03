@@ -462,8 +462,7 @@ class ShopProvider with ChangeNotifier {
       } else {
         throw Exception('Failed to upload image to Cloudinary');
       }
-    } catch (e) {
-      print('Error picking or uploading image: $e');
+    } catch (e) {      
       return '';
     }
   }
